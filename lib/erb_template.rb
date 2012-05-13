@@ -2,7 +2,6 @@
 
 require 'erb'
 
-$resstr = ''
 class ERBTemplate
 
   class MyERB < ERB
@@ -37,5 +36,3 @@ class ERBTemplate
   end
 
 end
-
-puts ERBTemplate.new.result( 'test.html' )
