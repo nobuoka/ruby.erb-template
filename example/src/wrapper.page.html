@@ -1,0 +1,10 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%=h arg[:title] %></title>
+    <link rel="stylesheet" href="<%= h site_path 'main.css' %>">
+  </head>
+  <body>
+% yield
+  </body>
+</html>

@@ -1,0 +1,130 @@
+# coding: UTF-8
+
+#$LOAD_PATH.unshift 'lib'
+
+require 'less'
+require 'erb_template'
+
+CC = "gcc"
+
+srcdir = 'src'
+dstdir = 'dst'
+
+@erb_template = ERBTemplate.new( srcdir )
+@less_parser = Less::Parser.new
+#tree = parser.parse(".class {width: 1+1}") # => Less::Tree
+#tree.to_css #=> .class {\n  width: 2;\n}\n
+#tree.to_css(:compress => true) #=> .class{width:2;}
+
+
+def proc_html( dstpath_str, srcpath_str, relpath )
+  file dstpath_str => [ srcpath_str ] do |task|
+    File.open( task.name, 'w' ) do |f|
+      p "proc: #{relpath}"
+      str = @erb_template.result( relpath )
+      f << str
+    end
+  end
+end
+
+def proc_css( dstpath_str, srcpath_str, relpath )
+  file dstpath_str => [ srcpath_str ] do |task|
+    File.open( task.name, 'w' ) do |f|
+      p "proc: #{relpath}"
+      str = @erb_template.result( relpath )
+      str = @less_parser.parse( str ).to_css
+      f << str
+    end
+  end
+end
+
+pn_srcdir = Pathname.new( srcdir )
+#Find.find( args[:srcdir] ) do |n|
+target_paths = []
+pn_srcdir.find do |pn|
+  #pn = Pathname.new( n )
+   relpath = pn.relative_path_from( pn_srcdir )
+   dstpath = Pathname.new( File.join( dstdir, relpath ) )
+   #srcpath = Pathname.new( File.expand_path( relpath, srcdir ) ) # 絶対パス
+   srcpath = Pathname.new( File.join( srcdir, relpath ) )
+  next if %r!(?:\A|/)wrap! =~ dstpath.to_s
+  target_paths << dstpath.to_s
+  case pn.ftype
+  when 'file'
+    if %r!\.html\z! =~ dstpath.to_s
+      proc_html( dstpath.to_s, srcpath.to_s, relpath )
+    elsif %r!\.css\z! =~ dstpath.to_s
+      proc_css( dstpath.to_s, srcpath.to_s, relpath )
+    else
+      file dstpath.to_s => [ srcpath.to_s ] do |task|
+        p 'do nothing'
+      end
+    end
+    #puts '古ければ上書き'
+  when 'directory'
+    file dstpath.to_s => [ srcpath.to_s ] do |task|
+      directory task.name
+    end
+    #if not dstpath.exist?
+    #  puts '存在しないから作成 : ' + dstpath.to_s
+    #end
+  else
+    p relpath.ftype
+  end
+end
+
+task :default => :all
+
+task :all => target_paths
+
+
+rule '.html'
+
+file "test.html" => [ 'src/test.html' ] do
+  File.open( 'test.html', 'w' ) do |f|
+    f << erb_template.result( 'test.html' )
+  end
+end
+
+file "hello.o" => "hello.c" do
+  sh "#{CC} -c hello.c"
+end
+
+file "message.o" => "message.c" do
+  sh "#{CC} -c message.c"
+end
+
+
+# ==== Server ====
+
+require 'webrick'
+server_type = Class.new( WEBrick::SimpleServer ) do |c|
+  def c.start
+    server_pid_file_name = File.dirname( __FILE__ ) + '/server.pid'
+    super do
+      # pid の出力
+      File.open( server_pid_file_name, 'w' ) do |f|
+        f << $$
+      end
+      # シグナル受信時の処理
+      shutdown_proc = ->( sig ){ @server.shutdown() }
+      [ :INT, :TERM ].each{ |e| Signal.trap( e, &shutdown_proc ) }
+      # pid ファイルの削除
+      at_exit{ File.unlink( server_pid_file_name ) }
+    end
+    yield if block_given?
+  end
+end
+task :start_server do |task|
+  srv = WEBrick::HTTPServer.new(
+            BindAddress:  '127.0.0.1',
+            Port:         10080,
+            DocumentRoot: 'dst',
+            ServerType:   server_type )
+  server_type.instance_variable_set( :@server, srv )
+  srv.start
+  p task.name
+end
+task :stop_server do |task|
+  p task.name
+end

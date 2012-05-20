@@ -1,0 +1,19 @@
+<% bordercolor = '#666666' %>
+html {
+    height: 100%;
+}
+body {
+    width: 42em;
+    margin: auto;
+    border: solid 0.05em <%= bordercolor %>;
+    border-style: none solid;
+    min-height: 100%;
+}
+#main-box {
+    padding: 0.5em;
+
+    h1 {
+        padding-left: 0.1em;
+        border-left: solid 0.2em <%= bordercolor %>;
+    }
+}
