@@ -1,6 +1,7 @@
 # coding: UTF-8
 
 require 'erb'
+require 'pathname'
 
 class ERBTemplate
 
@@ -14,25 +15,46 @@ class ERBTemplate
 
   class Engine
 
+    include ERB::Util
+
+    def initialize( erb_template )
+      @erb_template = erb_template
+      @erb_trim_mode = '%-'
+      @site_root_path = '/'
+    end
+
+    def site_path( path )
+      @site_root_path + path
+    end
+
     def process( file_name, arg = {} )
-      src = File.read( file_name )
-      MyERB.new( src, nil, nil, '@_erbout' ).result( binding )
+      src = File.read( @erb_template.get_file_path_str( file_name ) )
+      MyERB.new( src, nil, @erb_trim_mode, '@_erbout' ).result( binding )
     end
 
     def wrapper( file_name, arg = {}, &block )
-      src = File.read( file_name )
-      MyERB.new( src, nil, nil, '@_erbout' ).result( binding )
+      src = File.read( @erb_template.get_file_path_str( file_name ) )
+      MyERB.new( src, nil, @erb_trim_mode, '@_erbout' ).result( binding )
     end
 
-    def __result( file_name, args )
+    def __result( file_name, arg )
       @_erbout = ''
-      MyERB.new( File.read( file_name ), nil, nil, '@_erbout' ).result( binding )
+      src = File.read( @erb_template.get_file_path_str( file_name ) )
+      MyERB.new( src, nil, @erb_trim_mode, '@_erbout' ).result( binding )
     end
 
   end
 
+  def initialize( base_dir )
+    @base_dir_path = Pathname.new base_dir
+  end
+
+  def get_file_path_str( rel_path_str )
+    Pathname.new( File.expand_path( rel_path_str, @base_dir_path ) )
+  end
+
   def result( file_name, args = {} )
-    Engine.new.__result( file_name, args )
+    Engine.new( self ).__result( get_file_path_str( file_name ), args )
   end
 
 end
