@@ -12,11 +12,11 @@ Gem::Specification.new do |spec|
   spec.version = '0.1.0.pre'
   spec.summary = ''
   spec.files = FileList[
-    #'README.rdoc',
+    'README.rdoc',
     #'rakefile.rb',
     #'.gemtest',
     'lib/**/*',
-    'bin/**/*',
+    #'bin/**/*',
     #'test/**/*',
     #".document",
     #".gitignore",
@@ -29,7 +29,7 @@ Gem::Specification.new do |spec|
     #"test/test_test.rb"
   ].to_a
   spec.require_paths = [ 'lib' ]
-  spec.executables << 'erb-template'
+  #spec.executables << 'erb-template'
   #platform=
   #rubygems_version
 
@@ -60,15 +60,15 @@ Gem::Specification.new do |spec|
   #spec.description = "This gem is a one of implementations of W3C DOM." # more detailed than summary
   spec.homepage = 'https://github.com/nobuoka/ruby.erb-template'
   # TODO
-  #spec.has_rdoc = true
-  #spec.rdoc_options += [
-  #  '--charset=UTF-8',
-  #  '--main', 'README.rdoc'
-  #]
-  #spec.extra_rdoc_files = [
-  #  'README.rdoc'
+  spec.has_rdoc = true
+  spec.rdoc_options += [
+    '--charset=UTF-8',
+    '--main', 'README.rdoc'
+  ]
+  spec.extra_rdoc_files = [
+    'README.rdoc'
   #  #"LICENSE",
-  #]
+  ]
   spec.test_files = [
   #  'test/test_main.rb',
     #"test/main_test_1.8.rb",

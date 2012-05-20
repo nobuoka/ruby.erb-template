@@ -1,0 +1,8 @@
+= erb-template [RubyGem]
+
+ERB based template system
+
+== Description
+
+ERB doesn't have feature to include other files.
+This library extends ERB and provides such feature.
